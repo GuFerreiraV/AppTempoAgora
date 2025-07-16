@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AppTempoAgora.Helpers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace AppTempoAgora
 {
@@ -15,11 +18,26 @@ namespace AppTempoAgora
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            // Configuração do appsettings.json
+            var a = Assembly.GetExecutingAssembly();
+            using var stream = a.GetManifestResourceStream("AppTempoAgora.appsettings.json");
+            if(stream != null) 
+            {
+                var config = new ConfigurationBuilder()
+                    .AddJsonStream(stream)
+                    .Build();
+
+                builder.Configuration.AddConfiguration(config);
+            }
+
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+            var app = builder.Build();
+            ConfigurationHelper.Initialize(app.Services.GetService<IConfiguration>());
+
+            return app;
         }
     }
 }
